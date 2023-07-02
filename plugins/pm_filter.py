@@ -388,12 +388,16 @@ async def cb_handler(client: Client, query: CallbackQuery):
                 await query.answer(url=f"https://telegram.dog/{temp.U_NAME}?start={ident}_{file_id}")
                 return
             else:
-                await client.send_cached_media(
+                d = await client.send_cached_media(
                     chat_id=query.from_user.id,
                     file_id=file_id,
                     caption=f_caption,
+                 #   reply_markup=InlinekeyboardMarkup([[InlineKeyboardButton('JOIN CHANNEL',url='https://t.me/Filmztube')]]),
                     protect_content=True if ident == "filep" else False 
                 )
+                await asyncio.sleep(1440)
+                await d.delete()
+                
                 await query.answer('Check your PM, I have sent files in pm', show_alert=True)
         except UserIsBlocked:
             await query.answer('You Are Blocked to use me !', show_alert=True)
@@ -424,12 +428,15 @@ async def cb_handler(client: Client, query: CallbackQuery):
         if f_caption is None:
             f_caption = f"{title}"
         await query.answer()
-        await client.send_cached_media(
-            chat_id=query.from_user.id,
-            file_id=file_id,
-            caption=f_caption,
-            protect_content=True if ident == 'checksubp' else False
+        d = await client.send_cached_media(
+                    chat_id=query.from_user.id,
+                    file_id=file_id,
+                    caption=f_caption,
+                 #   reply_markup=InlinekeyboardMarkup([[InlineKeyboardButton('JOIN CHANNEL',url='https://t.me/Filmztube')]]),
+                    protect_content=True if ident == "filep" else False 
         )
+        await asyncio.sleep(1440)
+        await d.delete()
     elif query.data == "pages":
         await query.answer()
     elif query.data == "start":
