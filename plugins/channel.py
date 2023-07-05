@@ -7,7 +7,7 @@ import random
 from utils import get_size
 import time
 from pyrogram.errors.exceptions import FloodWait
-from pyrogram import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 media_filter = filters.document | filters.video | filters.audio
 
