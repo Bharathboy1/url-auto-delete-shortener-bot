@@ -57,6 +57,9 @@ async def x(app , msg):
     last_msg=col.find({'_id':'last_msg'})
     if not last_msg:
         col.update_one({'_id':'last_msg'},{'$set':{'index':0}},upsert=True)
+        last_msg=0
+    else:
+        last_msg=last_msg['index']
     id_list = [{'id': document['_id'], 'file_name': document['file_name'], 'file_caption': document['caption'] , 'file_size':document['file_size']} for document in documents]
     await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}")
     for j , i in enumerate(id_list[last_msg:]):
