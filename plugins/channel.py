@@ -101,5 +101,5 @@ def update_last_sent_message_in_database(channel_id, last_sent_message_id):
     # Update the last sent message for the given channel_id with the provided last_sent_message_id
     pass
 
-app = Client("my_bot")
-app.run()
+Client("my_bot").run()
+
