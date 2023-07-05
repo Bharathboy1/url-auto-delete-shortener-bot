@@ -58,7 +58,7 @@ async def x(app, msg):
     global pause_sending,start_sending
     if not start_sending:
         await msg.reply_text("Please use the /resetsend command to start sending messages from the beginning.")
-        return
+        
     
     args = msg.text.split(maxsplit=1)
     if len(args) == 1:
