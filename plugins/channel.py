@@ -114,4 +114,4 @@ async def resume_sending(app, msg):
     pause_sending = False
     await msg.reply_text("Sending resumed.")
 
-app.run()
+#app.run()
