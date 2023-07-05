@@ -6,7 +6,8 @@ import asyncio
 import random
 from utils import get_size
 import time
-from pyrogram.errors.exceptions.bad_request_400 import FloodWait
+from pyrogram.errors.exceptions import FloodWait
+
 
 media_filter = filters.document | filters.video | filters.audio
 
