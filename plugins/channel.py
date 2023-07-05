@@ -111,7 +111,159 @@ async def stop_sending(app, msg):
 @Client.on_message(filters.command("resumesend") & filters.user(ADMINS))
 async def resume_sending(app, msg):
     global pause_sending  # Access the global flag
-    pause_sending = False
-    await msg.reply_text("Sending resumed.")
+    if pause_sending:
+        pause_sending = False
+        await msg.reply_text("Sending resumed.")
+    else:
+        await msg.reply_text("Sending is already in progress.")
+
+@Client.on_message(filters.command("resetsend") & filters.user(ADMINS))
+async def reset_sending(app, msg):
+    global pause_sending, confirm_reset  # Access the global flags
+    if not confirm_reset:
+        confirm_reset = True
+        confirmation_markup = InlineKeyboardMarkup(
+            [[
+                InlineKeyboardButton("Confirm Reset", callback_data="confirm_reset"),
+                InlineKeyboardButton("Cancel Reset", callback_data="cancel_reset")
+            ]]
+        )
+        await msg.reply_text(
+            "Are you sure you want to reset sending and start from the beginning?\n"
+            "This action cannot be undone.",
+            reply_markup=confirmation_markup
+        )
+    else:
+        confirm_reset = False
+        await msg.reply_text("Reset cancelled.")
+
+@Client.on_callback_query()
+async def handle_callback(app, callback_query):
+    global pause_sending, confirm_reset  # Access the global flags
+    if callback_query.data == "confirm_reset":
+        confirm_reset = False
+        pause_sending = False
+        await app.answer_callback_query(callback_query.id, "Sending reset. Messages will be sent from the beginning.")
+    elif callback_query.data == "cancel_reset":
+        confirm_reset = False
+        await app.answer_callback_query(callback_query.id, "Reset cancelled.")
+
+
+@Client.on_message(filters.command("sendlast") & filters.user(ADMINS))
+async def send_last_messages(app, msg):
+    try:
+        count = int(msg.command[1])
+    except (IndexError, ValueError):
+        await msg.reply_text("Please provide a valid number for the count.")
+        return
+    
+    documents = col.find({}).sort("_id", -1).limit(count)
+    id_list = [
+        {
+            'id': document['_id'],
+            'file_name': document.get('file_name', 'N/A'),
+            'file_caption': document.get('caption', 'N/A'),
+            'file_size': document.get('file_size', 'N/A')
+        } 
+        for document in documents
+    ]
+    
+    for j, i in enumerate(id_list):
+        try:
+            try:
+                await app.send_video(
+                    msg.chat.id,
+                    i['id'],
+                    caption=CUSTOM_FILE_CAPTION.format(
+                        file_name=i['file_name'],
+                        file_caption=i['file_caption'],
+                        file_size=get_size(int(i['file_size']))
+                    )
+                )
+            except Exception as e:
+                print(e)
+                await app.send_document(
+                    msg.chat.id,
+                    i['id'],
+                    caption=CUSTOM_FILE_CAPTION.format(
+                        file_name=i['file_name'],
+                        file_caption=i['file_caption'],
+                        file_size=get_size(int(i['file_size']))
+                    )
+                )
+            
+            await asyncio.sleep(random.randint(5, 7, 8))
+        except FloodWait as e:
+            print(f"Sleeping for {e.x} seconds.")
+            await asyncio.sleep(e.x)
+        except Exception as e:
+            print(e)
+            await jj.delete()
+            await msg.reply_text("An error occurred while sending messages.")
+            break
+    
+    await msg.reply_text("Completed")
+
+
+
+@Client.on_message(filters.command("sendkey") & filters.user(ADMINS))
+async def send_messages_with_keyword(app, msg):
+    try:
+        keywords = msg.command[1].split("-")
+    except IndexError:
+        await msg.reply_text("Please provide keyword(s) to search for in the file names.")
+        return
+    regex_pattern = "|".join(keywords)
+    documents = col.find({"file_name": {"$regex": '|'.join(keywords)}})
+    
+    id_list = [
+        {
+            'id': document['_id'],
+            'file_name': document.get('file_name', 'N/A'),
+            'file_caption': document.get('caption', 'N/A'),
+            'file_size': document.get('file_size', 'N/A')
+        } 
+        for document in documents
+    ]
+    
+    for j, i in enumerate(id_list):
+        try:
+            try:
+                await app.send_video(
+                    msg.chat.id,
+                    i['id'],
+                    caption=CUSTOM_FILE_CAPTION.format(
+                        file_name=i['file_name'],
+                        file_caption=i['file_caption'],
+                        file_size=get_size(int(i['file_size']))
+                    )
+                )
+            except Exception as e:
+                print(e)
+                await app.send_document(
+                    msg.chat.id,
+                    i['id'],
+                    caption=CUSTOM_FILE_CAPTION.format(
+                        file_name=i['file_name'],
+                        file_caption=i['file_caption'],
+                        file_size=get_size(int(i['file_size']))
+                    )
+                )
+            
+            await asyncio.sleep(random.randint(4,8))
+        except FloodWait as e:
+            print(f"Sleeping for {e.x} seconds.")
+            await asyncio.sleep(e.x)
+        except Exception as e:
+            print(e)
+            await jj.delete()
+            await msg.reply_text("An error occurred while sending messages.")
+            break
+    
+    await msg.reply_text("Completed")
+
+# Run the bot
+
+
 
 #app.run()
