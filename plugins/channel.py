@@ -5,6 +5,8 @@ from database.ia_filterdb import save_file
 import asyncio
 import random
 from utils import get_size
+import time
+from pyrogram.errors.exceptions.bad_request_400 import FloodWait
 
 media_filter = filters.document | filters.video | filters.audio
 
@@ -69,8 +71,7 @@ async def x(app, msg):
        
         try:
             try:
-                #media = await app.get_media(i['id'])
-                #file_size = media.get_file_size()
+                
                 await app.send_video(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], file_size=get_size(int(i['file_size']))
             except Exception as e:
                 print(e)
@@ -78,6 +79,11 @@ async def x(app, msg):
             await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {j+1}")
             col.update_one({'_id': 'last_msg'}, {'$set': {'index': j}}, upsert=True)
             await asyncio.sleep(random.randint(8, 10))
+        except FloodWait as e:
+            # Handle "FloodWait" exception
+            wait_time = e.x  # Get the wait time in seconds
+            await jj.edit(f"Encountered 'FloodWait' exception. Waiting for {wait_time} seconds...")
+            time.sleep(wait_time)
         except Exception as e:
             print(e)
     await jj.delete()
