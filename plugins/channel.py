@@ -15,9 +15,14 @@ myclient = pymongo.MongoClient(DATABASE_URI)
 db = myclient[DATABASE_NAME]
 col = db[COLLECTION_NAME]
 
+pause_sending = False
+
 @Client.on_message(filters.chat(CHANNELS) & media_filter)
 async def media(bot, message):
     """Media Handler"""
+    if pause_sending:
+        return
+        
     for file_type in ("document", "video", "audio"):
         media = getattr(message, file_type, None)
         if media is not None:
@@ -48,6 +53,8 @@ async def start(client, message):
 
 @Client.on_message(filters.command("sendall") & filters.user(ADMINS))
 async def x(app, msg):
+    global pause_sending
+    
     args = msg.text.split(maxsplit=1)
     if len(args) == 1:
         return await msg.reply_text("Give Chat ID Also Where To Send Files")
@@ -69,6 +76,10 @@ async def x(app, msg):
     for j, i in enumerate(id_list[last_msg:], start=last_msg):
         if j < last_msg:
             continue
+ 
+        if pause_sending:
+            await jj.edit("Sending paused. Use /resumesend to continue.")
+            return
        
         try:
             try:
@@ -78,13 +89,29 @@ async def x(app, msg):
                 await app.send_document(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], file_size=get_size(int(i['file_size']))))
             await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {j+1}")
             col.update_one({'_id': 'last_msg'}, {'$set': {'index': j}}, upsert=True)
-            await asyncio.sleep(random.randint(8, 10))
+            await asyncio.sleep(random.randint(4,9))
         except FloodWait as e:
             # Handle "FloodWait" exception
             wait_time = e.x  # Get the wait time in seconds
             await jj.edit(f"Encountered 'FloodWait' exception. Waiting for {wait_time} seconds...")
             time.sleep(wait_time)
         except Exception as e:
-            print(e)
+            await jj.edit(f"Error: {str(e)}")
+            break
     await jj.delete()
     await msg.reply_text("Completed")
+
+
+@Client.on_message(filters.command("stopsend") & filters.user(ADMINS))
+async def stop_sending(app, msg):
+    global pause_sending  # Access the global flag
+    pause_sending = True
+    await msg.reply_text("Sending paused. Use /resumesend to continue.")
+
+@Client.on_message(filters.command("resumesend") & filters.user(ADMINS))
+async def resume_sending(app, msg):
+    global pause_sending  # Access the global flag
+    pause_sending = False
+    await msg.reply_text("Sending resumed.")
+
+app.run()
