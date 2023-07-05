@@ -17,6 +17,7 @@ col = db[COLLECTION_NAME]
 
 pause_sending = False
 confirm_reset = False
+start_sending = False
 
 @Client.on_message(filters.chat(CHANNELS) & media_filter)
 async def media(bot, message):
@@ -54,7 +55,10 @@ async def start(client, message):
 
 @Client.on_message(filters.command("sendall") & filters.user(ADMINS))
 async def x(app, msg):
-    global pause_sending
+    global pause_sending,start_sending
+    if not start_sending:
+        #await msg.reply_text("Please use the /resetsend command to start sending messages from the beginning.")
+        return
     
     args = msg.text.split(maxsplit=1)
     if len(args) == 1:
@@ -120,7 +124,7 @@ async def resume_sending(app, msg):
 
 @Client.on_message(filters.command("resetsend") & filters.user(ADMINS))
 async def reset_sending(app, msg):
-    global pause_sending, confirm_reset  # Access the global flags
+    global start_sending,pause_sending, confirm_reset  # Access the global flags
     if not confirm_reset:
         confirm_reset = True
         confirmation_markup = InlineKeyboardMarkup(
@@ -136,6 +140,8 @@ async def reset_sending(app, msg):
         )
     else:
         confirm_reset = False
+        start_sending = True
+        pause_sending = False
         await msg.reply_text("Reset cancelled.")
 
 @Client.on_callback_query()
