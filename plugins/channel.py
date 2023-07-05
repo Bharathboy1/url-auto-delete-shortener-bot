@@ -16,6 +16,7 @@ db = myclient[DATABASE_NAME]
 col = db[COLLECTION_NAME]
 
 pause_sending = False
+confirm_reset = False
 
 @Client.on_message(filters.chat(CHANNELS) & media_filter)
 async def media(bot, message):
@@ -163,7 +164,7 @@ async def send_last_messages(app, msg):
             'id': document['_id'],
             'file_name': document.get('file_name', 'N/A'),
             'file_caption': document.get('caption', 'N/A'),
-            'file_size': document.get('file_size', 'N/A')
+            'file_size': document.get('file_size', '00')
         } 
         for document in documents
     ]
@@ -198,7 +199,7 @@ async def send_last_messages(app, msg):
             await asyncio.sleep(e.x)
         except Exception as e:
             print(e)
-            await jj.delete()
+            #await jj.delete()
             await msg.reply_text("An error occurred while sending messages.")
             break
     
