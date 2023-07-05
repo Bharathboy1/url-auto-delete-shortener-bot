@@ -16,12 +16,12 @@ col = db[COLLECTION_NAME]
 
 
 def get_last_sent_message_from_database(channel_id):
+    document = col.find_one({"channel_id": channel_id}, sort=[("_id", pymongo.DESCENDING)])
     if document:
         return document
-else:
-    # Implement the database retrieval logic here
-    # Retrieve and return the last sent message for the given channel_id
-    return None  # Replace None with your actual last sent message retrieval logic
+    else:
+        return None
+# Replace None with your actual last sent message retrieval logic
 
 # Update the last sent message in the database for the specific channel
 def update_last_sent_message_in_database(channel_id, last_sent_message_id):
