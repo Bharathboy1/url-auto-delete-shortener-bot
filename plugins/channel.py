@@ -12,6 +12,8 @@ myclient = pymongo.MongoClient(DATABASE_URI)
 db = myclient[DATABASE_NAME]
 col = db[COLLECTION_NAME]
 
+last_sent_message = {"_id": 0}  
+
 
 def get_last_sent_message_from_database(channel_id):
     # Implement the database retrieval logic here
