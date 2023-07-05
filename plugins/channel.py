@@ -29,7 +29,7 @@ async def media(bot, message):
 async def start(client, message):
     try:
         for file_type in ("document", "video", "audio"):
-            media = getattr(message.reply_to_message , file_type, None)
+            media = getattr(message.reply_to_message, file_type, None)
             if media is not None:
                 break
         else:
@@ -59,24 +59,20 @@ async def x(app, msg):
         col.update_one({'_id': 'last_msg'}, {'$set': {'index': 0}}, upsert=True)
         last_msg = 0
     else:
-        last_msg = last_msg['index']
-    id_list = [{'id': document['_id'], 'file_name': document['file_name'], 'file_caption': document['caption'], 'file_size': document['file_size']} for document in documents]
+        last_msg = last_msg.get('index', 0)
+    id_list = [{'id': document['_id'], 'file_name': document.get('file_name', 'N/A'), 'file_caption': document.get('caption', 'N/A'), 'file_size': document.get('file_size', 'N/A')} for document in documents]
     await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}")
-    for j, i in enumerate(id_list[last_msg:]):
-        if j < last_msg:
-            continue
+    for j, i in enumerate(id_list[last_msg:], start=last_msg):
         try:
             try:
                 await app.send_video(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], file_size=i['file_size']))
             except Exception as e:
                 print(e)
                 await app.send_document(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], file_size=i['file_size']))
+            await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {j+1}")
+            col.update_one({'_id': 'last_msg'}, {'$set': {'index': j}}, upsert=True)
+            await asyncio.sleep(random.randint(8, 10))
         except Exception as e:
             print(e)
-
-        await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {j+1}")
-        col.update_one({'_id': 'last_msg'}, {'$set': {'index': j+1}}, upsert=True)
-        await asyncio.sleep(random.randint(8, 10))
-
     await jj.delete()
     await msg.reply_text("Completed")
