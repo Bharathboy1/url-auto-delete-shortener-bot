@@ -109,4 +109,5 @@ async def run_bot():
     await app.idle()
 
 # Call the run_bot() function using asyncio.run()
-asyncio.run(run_bot())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(run_bot())
