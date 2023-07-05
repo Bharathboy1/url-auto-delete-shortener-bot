@@ -12,7 +12,7 @@ myclient = pymongo.MongoClient(DATABASE_URI)
 db = myclient[DATABASE_NAME]
 col = db[COLLECTION_NAME]
 
-last_sent_message_id = 0
+
 
 
 def get_last_sent_message_from_database(channel_id):
@@ -24,7 +24,8 @@ def get_last_sent_message_from_database(channel_id):
 def update_last_sent_message_in_database(channel_id, last_sent_message_id):
     # Implement the database update logic here
     # Update the last sent message for the given channel_id with the provided last_sent_message_id
-    pass
+    col.update_one({"channel_id": channel_id}, {"$set": {"last_sent_message_id": last_sent_message_id}})
+
 # Load last sent message index from database upon bot start/restart
 #last_sent_message = load_last_sent_message_from_database()
 
@@ -65,7 +66,7 @@ async def start(client, message):
 
 @Client.on_message(filters.command("sendall") & filters.user(ADMINS))
 async def send_all(app, msg):
-    global last_sent_message  # Update last_sent_message as a global variable
+    args = msg.text.split(maxsplit=1)  # Update last_sent_message as a global variable
     args = msg.text.split(maxsplit=1)
     if len(args) == 1:
         return await msg.reply_text("Give Chat ID Also Where To Send Files")
