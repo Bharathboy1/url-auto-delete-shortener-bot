@@ -13,7 +13,7 @@ db = myclient[DATABASE_NAME]
 col = db[COLLECTION_NAME]
 
 # Load last sent message index from database upon bot start/restart
-last_sent_message = load_last_sent_message_from_database()
+#last_sent_message = load_last_sent_message_from_database()
 
 @Client.on_message(filters.chat(CHANNELS) & media_filter)
 async def media(bot, message):
