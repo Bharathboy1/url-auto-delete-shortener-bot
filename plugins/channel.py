@@ -7,7 +7,7 @@ import random
 from utils import get_size
 import time
 from pyrogram.errors.exceptions import FloodWait
-
+from pyrogram import InlineKeyboardButton, InlineKeyboardMarkup
 
 media_filter = filters.document | filters.video | filters.audio
 
@@ -193,7 +193,7 @@ async def send_last_messages(app, msg):
                     )
                 )
             
-            await asyncio.sleep(random.randint(5, 7, 8))
+            await asyncio.sleep(random.randint(4,8))
         except FloodWait as e:
             print(f"Sleeping for {e.x} seconds.")
             await asyncio.sleep(e.x)
