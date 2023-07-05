@@ -103,9 +103,10 @@ async def send_all(app, msg):
 # Get the last sent message from the database for the specific channel
 
 
-async def main():
+async def run_bot():
     app = Client("my_bot")
     await app.start()
     await app.idle()
 
-await asyncio.run(main())
+# Call the run_bot() function using asyncio.run()
+asyncio.run(run_bot())
