@@ -12,6 +12,17 @@ myclient = pymongo.MongoClient(DATABASE_URI)
 db = myclient[DATABASE_NAME]
 col = db[COLLECTION_NAME]
 
+
+def get_last_sent_message_from_database(channel_id):
+    # Implement the database retrieval logic here
+    # Retrieve and return the last sent message for the given channel_id
+    return None  # Replace None with your actual last sent message retrieval logic
+
+# Update the last sent message in the database for the specific channel
+def update_last_sent_message_in_database(channel_id, last_sent_message_id):
+    # Implement the database update logic here
+    # Update the last sent message for the given channel_id with the provided last_sent_message_id
+    pass
 # Load last sent message index from database upon bot start/restart
 #last_sent_message = load_last_sent_message_from_database()
 
@@ -90,16 +101,8 @@ async def send_all(app, msg):
     await msg.reply_text("completed")
 
 # Get the last sent message from the database for the specific channel
-def get_last_sent_message_from_database(channel_id):
-    # Implement the database retrieval logic here
-    # Retrieve and return the last sent message for the given channel_id
-    return None  # Replace None with your actual last sent message retrieval logic
 
-# Update the last sent message in the database for the specific channel
-def update_last_sent_message_in_database(channel_id, last_sent_message_id):
-    # Implement the database update logic here
-    # Update the last sent message for the given channel_id with the provided last_sent_message_id
-    pass
 
-Client("my_bot").run()
+app = Client("my_bot")
+app.run()
 
