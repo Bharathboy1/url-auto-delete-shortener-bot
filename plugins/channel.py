@@ -79,6 +79,11 @@ async def send_all(app, msg):
     
     # Get the last sent message for the specific channel from the database
     last_sent_message = get_last_sent_message_from_database(args)
+    if last_sent_message is None:
+        last_sent_message_id = 0
+    else:
+        last_sent_message_id = last_sent_message["_id"]
+
     
     documents = col.find({"channel_id": args, "_id": {"$gt": last_sent_message["_id"]}})
     id_list = [{'id': document['_id'], 'file_name': document['file_name'], 'file_caption': document['caption'], 'file_size': document['file_size']} for document in documents]
