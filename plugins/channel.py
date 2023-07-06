@@ -12,14 +12,19 @@ myclient = pymongo.MongoClient(DATABASE_URI)
 db = myclient[DATABASE_NAME]
 col = db[COLLECTION_NAME]
 
+stop_sending = False  # Flag to indicate if sending should be stopped
+start_file = None  # File name to start sending from
+
 @Client.on_message(filters.chat(CHANNELS) & media_filter)
 async def media(bot, message):
-    """Media Handler"""
+    
+    media = None
     for file_type in ("document", "video", "audio"):
         media = getattr(message, file_type, None)
         if media is not None:
             break
-    else:
+
+    if media is None:
         return
 
     media.file_type = file_type
@@ -28,23 +33,23 @@ async def media(bot, message):
 
 @Client.on_message(filters.command("savefile") & filters.user(ADMINS))
 async def start(client, message):
-    try:
-        for file_type in ("document", "video", "audio"):
-            media = getattr(message.reply_to_message, file_type, None)
-            if media is not None:
-                break
-        else:
-            return
+    for file_type in ("document", "video", "audio"):
+        media = getattr(message.reply_to_message, file_type, None)
+        if media is not None:
+            break
 
-        media.file_type = file_type
-        media.caption = message.reply_to_message.caption
-        await save_file(media)
-        await message.reply_text("Saved In DB")
-    except Exception as e:
-        await message.reply_text(f"Error: {str(e)}")
+    if media is None:
+        return
+
+    media.file_type = file_type
+    media.caption = message.reply_to_message.caption
+    await save_file(media)
+    await message.reply_text("Saved In DB")
 
 @Client.on_message(filters.command("sendall") & filters.user(ADMINS))
 async def x(app, msg):
+    global stop_sending, start_file  # Access the flags defined outside the function
+
     args = msg.text.split(maxsplit=1)
     if len(args) == 1:
         return await msg.reply_text("Give Chat ID Also Where To Send Files")
@@ -53,7 +58,7 @@ async def x(app, msg):
         args = int(args)
     except Exception:
         return await msg.reply_text("Chat Id must be an integer not a string")
-    jj = await msg.reply_text("Processing")
+
     documents = col.find({})
     last_msg = col.find_one({'_id': 'last_msg'})
     if not last_msg:
@@ -61,13 +66,18 @@ async def x(app, msg):
         last_msg = 0
     else:
         last_msg = last_msg.get('index', 0)
-    id_list = [{'id': document['_id'], 'file_name': document.get('file_name', 'N/A'), 'file_caption': document.get('caption', 'N/A'), 'file_size': document.get('file_size', 'N/A')} for document in documents]
-    await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}")
+
+    id_list = [{'id': document['_id'], 'file_name': document.get('file_name', 'N/A'), 'file_caption': document.get('caption', 'N/A'), 'file_size': document.get('file_size', 'N/A'), 'file_type': document.get('file_type', 'document')} for document in documents]
+    
     for j, i in enumerate(id_list[last_msg:], start=last_msg):
         try:
-            try:
+            if i['file_type'] == 'video':
                 await app.send_video(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], get_size(int(i['file_size']))))
+            else:
+                await app.send_document(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], get_size(int(i['file_size']))))
+        
         except Exception as e:
+
                 print(e)
                 await app.send_document(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], get_size(int(i['file_size']))))
             await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {j+1}")
