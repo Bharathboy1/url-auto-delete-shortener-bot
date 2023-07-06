@@ -58,11 +58,14 @@ async def x(app, msg):
     global pause_sending, start_sending
     
     if not start_sending:
-        await msg.reply_text("continuing.... , use /resetsend if want to start from the beginning.")
+        l = await msg.reply_text("continuing.... , use /resetsend if want to start from the beginning.")
+        await asyncio.sleep(5)
+        await l.delete()
     else:
         col.update_one({'_id': 'last_msg'}, {'$set': {'index': 0}}, upsert=True)
-        await msg.reply_text("Sending has been reset. Messages will be sent from the beginning.")
-
+        k = await msg.reply_text("Sending has been reset. Messages will be sent from the beginning.")
+        await asyncio.sleep(5)
+        await k.delete()
     
     args = msg.text.split(maxsplit=1)
     if len(args) == 1:
@@ -72,7 +75,7 @@ async def x(app, msg):
         args = int(args)
     except Exception:
         return await msg.reply_text("Chat Id must be an integer not a string")
-    jj = await msg.reply_text("Processing")
+    jj = await msg.reply_text("Processing.....please wait!")
     documents = col.find({})
     last_msg = col.find_one({'_id': 'last_msg'})
     if not last_msg:
@@ -86,9 +89,7 @@ async def x(app, msg):
         if j < last_msg:
             continue
  
-        if pause_sending:
-            await jj.edit("Sending stopped.")
-            return
+        
        
         try:
             try:
@@ -108,7 +109,7 @@ async def x(app, msg):
             await jj.edit(f"Error: {str(e)}")
             break
     await jj.delete()
-    await msg.reply_text("Completed")
+    await msg.reply_text("Completed!")
 
 
 @Client.on_message(filters.command("stopsend") & filters.user(ADMINS))
