@@ -87,7 +87,7 @@ async def x(app, msg):
             continue
  
         if pause_sending:
-            await jj.edit("Sending paused. Use /resumesend to continue.")
+            await jj.edit("Sending stopped.")
             return
        
         try:
@@ -115,16 +115,8 @@ async def x(app, msg):
 async def stop_sending(app, msg):
     global pause_sending  # Access the global flag
     pause_sending = True
-    await msg.reply_text("Sending paused. Use /resumesend to continue.")
+    await msg.reply_text("Sending stopped!.")
 
-@Client.on_message(filters.command("resumesend") & filters.user(ADMINS))
-async def resume_sending(app, msg):
-    global pause_sending  # Access the global flag
-    if pause_sending:
-        pause_sending = False
-        await msg.reply_text("Sending resumed.")
-    else:
-        await msg.reply_text("Sending is already in progress.")
 
 
 @Client.on_message(filters.command("resetsend") & filters.user(ADMINS))
