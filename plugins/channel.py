@@ -55,10 +55,14 @@ async def start(client, message):
 
 @Client.on_message(filters.command("sendall") & filters.user(ADMINS))
 async def x(app, msg):
-    global pause_sending,start_sending
+    global pause_sending, start_sending
+    
     if not start_sending:
-        await msg.reply_text("Please use the /resetsend command to start sending messages from the beginning.")
-        
+        await msg.reply_text("continuing.... , use /resetsend if want to start from the beginning.")
+    else:
+        col.update_one({'_id': 'last_msg'}, {'$set': {'index': 0}}, upsert=True)
+        await msg.reply_text("Sending has been reset. Messages will be sent from the beginning.")
+
     
     args = msg.text.split(maxsplit=1)
     if len(args) == 1:
@@ -127,9 +131,7 @@ async def resume_sending(app, msg):
 async def reset_sending(app, msg):
     global pause_sending, confirm_reset, start_sending
 
-    if not start_sending:
-        await msg.reply_text("Sending is already reset and ready to start from the beginning.")
-        return
+    
 
     if not confirm_reset:
         confirm_reset = True
@@ -146,6 +148,7 @@ async def reset_sending(app, msg):
         )
     else:
         confirm_reset = False
+        start_sending = False
         await msg.reply_text("Reset cancelled.")
 
 
