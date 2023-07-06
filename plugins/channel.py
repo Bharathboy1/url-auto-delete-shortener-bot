@@ -122,7 +122,7 @@ async def resume_sending(app, msg):
     else:
         await msg.reply_text("Sending is already in progress.")
 
-@Client.on_message(filters.command("resetsend") & filters.user(ADMINS))
+
 @Client.on_message(filters.command("resetsend") & filters.user(ADMINS))
 async def reset_sending(app, msg):
     global pause_sending, confirm_reset, start_sending
