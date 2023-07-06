@@ -17,7 +17,7 @@ col = db[COLLECTION_NAME]
 
 pause_sending = False
 confirm_reset = False
-start_sending = False
+start_sending = True
 
 @Client.on_message(filters.chat(CHANNELS) & media_filter)
 async def media(bot, message):
