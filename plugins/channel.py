@@ -88,6 +88,8 @@ async def x(app, msg):
     for j, i in enumerate(id_list[last_msg:], start=last_msg):
         if j < last_msg:
             continue
+        if pause_sending:
+            break
  
         
        
@@ -114,9 +116,16 @@ async def x(app, msg):
 
 @Client.on_message(filters.command("stopsend") & filters.user(ADMINS))
 async def stop_sending(app, msg):
-    global pause_sending  # Access the global flag
-    pause_sending = True
-    await msg.reply_text("Sending stopped!.")
+    global pause_sending, confirm_reset, start_sending
+
+    if start_sending:
+        
+        pause_sending = True
+        confirm_reset = False
+        await msg.reply_text("Sending process stopped.")
+    else:
+        await msg.reply_text("No active sending process to stop.")
+
 
 
 
@@ -140,9 +149,14 @@ async def reset_sending(app, msg):
             reply_markup=confirmation_markup
         )
     else:
-        confirm_reset = False
-        start_sending = False
-        await msg.reply_text("Reset cancelled.")
+        if start_sending:
+            start_sending = False
+            pause_sending = False
+            confirm_reset = False
+            await msg.reply_text("Reset cancelled and sending process stopped.")
+        else:
+            confirm_reset = False
+            await msg.reply_text("Reset cancelled.")
 
 
 @Client.on_callback_query()
