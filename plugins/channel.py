@@ -123,8 +123,14 @@ async def resume_sending(app, msg):
         await msg.reply_text("Sending is already in progress.")
 
 @Client.on_message(filters.command("resetsend") & filters.user(ADMINS))
+@Client.on_message(filters.command("resetsend") & filters.user(ADMINS))
 async def reset_sending(app, msg):
-    global start_sending,pause_sending, confirm_reset  # Access the global flags
+    global pause_sending, confirm_reset, start_sending
+
+    if not start_sending:
+        await msg.reply_text("Sending is already reset and ready to start from the beginning.")
+        return
+
     if not confirm_reset:
         confirm_reset = True
         confirmation_markup = InlineKeyboardMarkup(
@@ -140,16 +146,17 @@ async def reset_sending(app, msg):
         )
     else:
         confirm_reset = False
-        start_sending = True
-        pause_sending = False
         await msg.reply_text("Reset cancelled.")
+
 
 @Client.on_callback_query()
 async def handle_callback(app, callback_query):
-    global pause_sending, confirm_reset  # Access the global flags
+    global pause_sending, confirm_reset, start_sending
+
     if callback_query.data == "confirm_reset":
         confirm_reset = False
         pause_sending = False
+        start_sending = True
         await app.answer_callback_query(callback_query.id, "Sending reset. Messages will be sent from the beginning.")
     elif callback_query.data == "cancel_reset":
         confirm_reset = False
