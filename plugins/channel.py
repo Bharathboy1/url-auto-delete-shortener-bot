@@ -170,7 +170,7 @@ async def send_last_messages(app, msg):
         count = int(msg.command[1])
     except (IndexError, ValueError):
         await msg.reply_text("Please provide a valid number for the count.")
-        return```python
+        return
     documents = col.find({}).sort("_id", -1).limit(count)
     id_list = [
         {
