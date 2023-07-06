@@ -58,14 +58,11 @@ async def x(app, msg):
     global pause_sending, start_sending
     
     if not start_sending:
-        l = await msg.reply_text("continuing.... , use /resetsend if want to start from the beginning.")
-        await asyncio.sleep(5)
-        await l.delete()
+        await msg.reply_text("continuing.... , use /resetsend if want to start from the beginning.")
     else:
         col.update_one({'_id': 'last_msg'}, {'$set': {'index': 0}}, upsert=True)
-        k = await msg.reply_text("Sending has been reset. Messages will be sent from the beginning.")
-        await asyncio.sleep(5)
-        await k.delete()
+        await msg.reply_text("Sending has been reset. Messages will be sent from the beginning.")
+
     
     args = msg.text.split(maxsplit=1)
     if len(args) == 1:
@@ -75,7 +72,7 @@ async def x(app, msg):
         args = int(args)
     except Exception:
         return await msg.reply_text("Chat Id must be an integer not a string")
-    jj = await msg.reply_text("Processing.....please wait!")
+    jj = await msg.reply_text("Processing")
     documents = col.find({})
     last_msg = col.find_one({'_id': 'last_msg'})
     if not last_msg:
@@ -88,10 +85,10 @@ async def x(app, msg):
     for j, i in enumerate(id_list[last_msg:], start=last_msg):
         if j < last_msg:
             continue
-        if pause_sending:
-            break
  
-        
+        if pause_sending:
+            await jj.edit("Sending paused. Use /resumesend to continue.")
+            return
        
         try:
             try:
@@ -111,29 +108,28 @@ async def x(app, msg):
             await jj.edit(f"Error: {str(e)}")
             break
     await jj.delete()
-    await msg.reply_text("Completed!")
+    await msg.reply_text("Completed")
 
 
 @Client.on_message(filters.command("stopsend") & filters.user(ADMINS))
 async def stop_sending(app, msg):
-    global pause_sending, confirm_reset, start_sending
+    global pause_sending  # Access the global flag
+    pause_sending = True
+    await msg.reply_text("Sending paused. Use /resumesend to continue.")
 
-    if start_sending:
-        
-        pause_sending = True
-        confirm_reset = False
-        await msg.reply_text("Sending process stopped.")
+@Client.on_message(filters.command("resumesend") & filters.user(ADMINS))
+async def resume_sending(app, msg):
+    global pause_sending  # Access the global flag
+    if pause_sending:
+        pause_sending = False
+        await msg.reply_text("Sending resumed.")
     else:
-        await msg.reply_text("No active sending process to stop.")
-
-
+        await msg.reply_text("Sending is already in progress.")
 
 
 @Client.on_message(filters.command("resetsend") & filters.user(ADMINS))
 async def reset_sending(app, msg):
     global pause_sending, confirm_reset, start_sending
-
-    
 
     if not confirm_reset:
         confirm_reset = True
@@ -149,14 +145,9 @@ async def reset_sending(app, msg):
             reply_markup=confirmation_markup
         )
     else:
-        if start_sending:
-            start_sending = False
-            pause_sending = False
-            confirm_reset = False
-            await msg.reply_text("Reset cancelled and sending process stopped.")
-        else:
-            confirm_reset = False
-            await msg.reply_text("Reset cancelled.")
+        confirm_reset = False
+        start_sending = False
+        await msg.reply_text("Reset cancelled.")
 
 
 @Client.on_callback_query()
@@ -179,8 +170,7 @@ async def send_last_messages(app, msg):
         count = int(msg.command[1])
     except (IndexError, ValueError):
         await msg.reply_text("Please provide a valid number for the count.")
-        return
-    
+        return```python
     documents = col.find({}).sort("_id", -1).limit(count)
     id_list = [
         {
@@ -280,14 +270,8 @@ async def send_messages_with_keyword(app, msg):
             await asyncio.sleep(e.x)
         except Exception as e:
             print(e)
-            await jj.delete()
+            #await jj.delete()
             await msg.reply_text("An error occurred while sending messages.")
             break
     
     await msg.reply_text("Completed")
-
-# Run the bot
-
-
-
-#app.run()
