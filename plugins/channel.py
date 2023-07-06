@@ -4,6 +4,7 @@ from info import DATABASE_URI, DATABASE_NAME, COLLECTION_NAME, ADMINS, CHANNELS,
 from database.ia_filterdb import save_file
 import asyncio
 import random
+import time
 from utils import get_size
 
 media_filter = filters.document | filters.video | filters.audio
@@ -58,7 +59,7 @@ async def x(app, msg):
         args = int(args)
     except Exception:
         return await msg.reply_text("Chat Id must be an integer not a string")
-
+    jj = await msg.reply_text("Processing")
     documents = col.find({})
     last_msg = col.find_one({'_id': 'last_msg'})
     if not last_msg:
@@ -69,22 +70,23 @@ async def x(app, msg):
 
     id_list = [{'id': document['_id'], 'file_name': document.get('file_name', 'N/A'), 'file_caption': document.get('caption', 'N/A'), 'file_size': document.get('file_size', 'N/A'), 'file_type': document.get('file_type', 'document')} for document in documents]
     
+    start_time = time.time()
+    processed_files = 0
+
+    await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {processed_files}")
+    
     for j, i in enumerate(id_list[last_msg:], start=last_msg):
         try:
             if i['file_type'] == 'video':
                 await app.send_video(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], file_size=get_size(int(i['file_size']))))
             else:
                 await app.send_document(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], file_size=get_size(int(i['file_size']))))
+            processed_files += 1
+            await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {processed_files}")
+
         
-        except Exception as e:
-
-                print(e)
-                await app.send_document(msg.chat.id, i['id'], caption=CUSTOM_FILE_CAPTION.format(file_name=i['file_name'], file_caption=i['file_caption'], file_size=get_size(int(i['file_size']))))
-           # await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {j+1}")
-                await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {j+1}")
-
-                col.update_one({'_id': 'last_msg'}, {'$set': {'index': j}}, upsert=True)
-                await asyncio.sleep(random.randint(2, 6))
+            col.update_one({'_id': 'last_msg'}, {'$set': {'index': j}}, upsert=True)
+            await asyncio.sleep(random.randint(2, 6))
         except Exception as e:
             print(e)
     await jj.delete()
