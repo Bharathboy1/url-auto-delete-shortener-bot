@@ -84,7 +84,7 @@ async def x(app, msg):
                 await jj.edit(f"Found {len(id_list)} Files In The DB Starting To Send In Chat {args}\nProcessed: {j+1}")
 
                 col.update_one({'_id': 'last_msg'}, {'$set': {'index': j}}, upsert=True)
-                await asyncio.sleep(random.randint(8, 10))
+                await asyncio.sleep(random.randint(2, 6))
         except Exception as e:
             print(e)
     await jj.delete()
